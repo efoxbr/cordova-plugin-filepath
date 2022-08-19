@@ -187,7 +187,7 @@ public class FilePath extends CordovaPlugin {
      * @return Whether the Uri authority is One Drive.
      */
     private static boolean isOneDriveUri(Uri uri) {
-        return "com.microsoft.skydrive.content.external".equals(uri.getAuthority());
+        return "com.microsoft.skydrive.content.external".equals(uri.getAuthority()) || "com.microsoft.skydrive.content.StorageAccessProvider".equals(uri.getAuthority());
     }
 
     /**
@@ -434,7 +434,7 @@ public class FilePath extends CordovaPlugin {
                 };
 
                 return getDataColumn(context, contentUri, selection, selectionArgs);
-            } else if (isGoogleDriveUri(uri)) {
+            } else if (isGoogleDriveUri(uri) || isOneDriveUri(uri)) {
                 return getDriveFilePath(uri, context);
             }
         }
