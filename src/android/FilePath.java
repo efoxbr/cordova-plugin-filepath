@@ -307,11 +307,16 @@ public class FilePath extends CordovaPlugin {
      * @param rawPath The raw path
      */
     private static String getRawFilepath(String rawPath) {
-        final String[] split = rawPath.split(":");
-        if (fileExists(split[1])) {
-            return split[1];
+        String rpath = rawPath.toString();
+        if(rpath.indexOf('/raw%3A') != -1){
+            rpath = rpath.replace("/raw%3A", "/raw:");
         }
-
+        if(rpath.indexOf('/raw:') != -1){
+            final String[] split = rpath.split("/raw:");
+            if (fileExists(split[1])) {
+                return split[1];
+            }
+        }
         return "";
     }
 
@@ -337,11 +342,16 @@ public class FilePath extends CordovaPlugin {
                 ", Host: " + uri.getHost() +
                 ", Segments: " + uri.getPathSegments().toString()
         );
+        final String rawFilepath = getRawFilepath(uri);
+        if (rawFilepath != "") {
+            return rawFilepath;
+        }
 
         final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
 
         // DocumentProvider
         if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
+            // sometimes in raw type, the second part is a valid filepath
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 return copyFileToInternalStorage(context, uri);
             }
@@ -378,12 +388,6 @@ public class FilePath extends CordovaPlugin {
                 }
                 //
                 final String id = DocumentsContract.getDocumentId(uri);
-
-                // sometimes in raw type, the second part is a valid filepath
-                final String rawFilepath = getRawFilepath(id);
-                if (rawFilepath != "") {
-                    return rawFilepath;
-                }
 
                 String[] contentUriPrefixesToTry = new String[]{
                         "content://downloads/public_downloads",
