@@ -307,7 +307,7 @@ public class FilePath extends CordovaPlugin {
      * @param rawPath The raw path
      */
     private static String getRawFilepath(String rawPath) {
-        String rpath = rawPath.toString();
+        String rpath = rawPath;
         if(rpath.indexOf("/raw%3A") != -1){
             rpath = rpath.replace("/raw%3A", "/raw:");
         }
@@ -347,11 +347,6 @@ public class FilePath extends CordovaPlugin {
 
         // DocumentProvider
         if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
-            // sometimes in raw type, the second part is a valid filepath
-            final String rawFilepath = getRawFilepath(uri);
-            if (rawFilepath != "") {
-                return rawFilepath;
-            }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 return copyFileToInternalStorage(context, uri);
             }
@@ -388,6 +383,12 @@ public class FilePath extends CordovaPlugin {
                 }
                 //
                 final String id = DocumentsContract.getDocumentId(uri);
+
+                // sometimes in raw type, the second part is a valid filepath
+                final String rawFilepath = getRawFilepath(id);
+                if (rawFilepath != "") {
+                    return rawFilepath;
+                }
 
                 String[] contentUriPrefixesToTry = new String[]{
                         "content://downloads/public_downloads",
