@@ -308,10 +308,10 @@ public class FilePath extends CordovaPlugin {
      */
     private static String getRawFilepath(String rawPath) {
         String rpath = rawPath.toString();
-        if(rpath.indexOf('/raw%3A') != -1){
+        if(rpath.indexOf("/raw%3A") != -1){
             rpath = rpath.replace("/raw%3A", "/raw:");
         }
-        if(rpath.indexOf('/raw:') != -1){
+        if(rpath.indexOf("/raw:") != -1){
             final String[] split = rpath.split("/raw:");
             if (fileExists(split[1])) {
                 return split[1];
@@ -342,16 +342,16 @@ public class FilePath extends CordovaPlugin {
                 ", Host: " + uri.getHost() +
                 ", Segments: " + uri.getPathSegments().toString()
         );
-        final String rawFilepath = getRawFilepath(uri);
-        if (rawFilepath != "") {
-            return rawFilepath;
-        }
 
         final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
 
         // DocumentProvider
         if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
             // sometimes in raw type, the second part is a valid filepath
+            final String rawFilepath = getRawFilepath(uri);
+            if (rawFilepath != "") {
+                return rawFilepath;
+            }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 return copyFileToInternalStorage(context, uri);
             }
