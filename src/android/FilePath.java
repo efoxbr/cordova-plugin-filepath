@@ -311,10 +311,21 @@ public class FilePath extends CordovaPlugin {
         if(rpath.indexOf("/raw%3A") != -1){
             rpath = rpath.replace("/raw%3A", "/raw:");
         }
+        Log.d(TAG, "URL decoding:: "+ rpath);
         if(rpath.indexOf("/raw:") != -1){
             final String[] split = rpath.split("/raw:");
             if (fileExists(split[1])) {
                 return split[1];
+            } else {
+                try {
+                    String result = java.net.URLDecoder.decode(split[1], "UTF-8");
+                    Log.d(TAG, "URL decoding: "+ result);
+                    if (fileExists(result)) {
+                        return result;
+                    }                    
+                } catch (Exception e) {
+                    Log.d(TAG, "URL decoding error for: "+ split[1]);                    
+                }
             }
         }
         return "";
