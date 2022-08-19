@@ -406,7 +406,7 @@ public class FilePath extends CordovaPlugin {
                 } catch (Exception e) {
                     return uri.getPath();
                 }
-
+    
             }
             // MediaProvider
             else if (isMediaDocument(uri)) {
