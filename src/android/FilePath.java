@@ -257,8 +257,7 @@ public class FilePath extends CordovaPlugin {
      * @param selectionArgs (Optional) Selection arguments used in the query.
      * @return The value of the _data column, which is typically a file path.
      */
-    private static String getDataColumn(Context context, Uri uri, String selection,
-        String[] selectionArgs) {
+    private static String getDataColumn(Context context, Uri uri, String selection, String[] selectionArgs) {
 
         Cursor cursor = null;
         final String column = "_data";
@@ -402,23 +401,40 @@ public class FilePath extends CordovaPlugin {
      */
     private static String getPath(final Context context, final Uri uri) {
 
+        final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
+        final String id = DocumentsContract.getDocumentId(uri);
+        final String scheme = uri.getScheme();
+
         Log.d(TAG, "File - " +
             "Authority: " + uri.getAuthority() +
             ", Fragment: " + uri.getFragment() +
             ", Port: " + uri.getPort() +
             ", Query: " + uri.getQuery() +
-            ", Scheme: " + uri.getScheme() +
+            ", Scheme: " + scheme +
             ", Host: " + uri.getHost() +
             ", Segments: " + uri.getPathSegments().toString()
         );
+        
+        // File
+        if ("file".equalsIgnoreCase(scheme)) {
+            return uri.getPath();
+        }
 
-        final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
+        if(id != null){
+            // sometimes in raw type, the second part is a valid filepath
+            final String rawFilepath = getRawFilepath(id);
+            if (rawFilepath.equals("")) {
+                return rawFilepath;
+            }
+        }
 
         // DocumentProvider
         if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 return copyFileToInternalStorage(context, uri);
             }
+
             // ExternalStorageProvider
             if (isExternalStorageDocument(uri)) {
                 final String docId = DocumentsContract.getDocumentId(uri);
@@ -426,7 +442,7 @@ public class FilePath extends CordovaPlugin {
                 final String type = split[0];
 
                 String fullPath = getPathFromExtSD(split);
-                if (fullPath != "") {
+                if (fullPath.equals("")) {
                     return fullPath;
                 } else {
                     return null;
@@ -450,14 +466,6 @@ public class FilePath extends CordovaPlugin {
                 } finally {
                     if (cursor != null)
                         cursor.close();
-                }
-                //
-                final String id = DocumentsContract.getDocumentId(uri);
-
-                // sometimes in raw type, the second part is a valid filepath
-                final String rawFilepath = getRawFilepath(id);
-                if (rawFilepath != "") {
-                    return rawFilepath;
                 }
 
                 String[] contentUriPrefixesToTry = new String[] {
@@ -519,7 +527,7 @@ public class FilePath extends CordovaPlugin {
             }
         }
         // MediaStore (and general)
-        else if ("content".equalsIgnoreCase(uri.getScheme())) {
+        else if ("content".equalsIgnoreCase(scheme)) {
 
             // Return the remote address
             if (isGooglePhotosUri(uri)) {
@@ -527,7 +535,7 @@ public class FilePath extends CordovaPlugin {
                     return getDriveFilePath(uri, context);
                 } else {
                     String contentPath = getContentFromSegments(uri.getPathSegments());
-                    if (contentPath != "") {
+                    if (contentPath.equals("")) {
                         return getPath(context, Uri.parse(contentPath));
                     } else {
                         return null;
@@ -541,12 +549,8 @@ public class FilePath extends CordovaPlugin {
 
             return getDataColumn(context, uri, null, null);
         }
-        // File
-        else if ("file".equalsIgnoreCase(uri.getScheme())) {
-            return uri.getPath();
-        }
 
-        return null;
+        return uri.toString();
     }
 
     private static String getDriveFilePath(Uri uri, Context context) {
