@@ -24,18 +24,14 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONException;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.util.List;
-import java.io.File;
-
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.List;
 
 import android.content.pm.ApplicationInfo;
-
-
-import org.apache.commons.io.IOUtils;
 
 public class FilePath extends CordovaPlugin {
 
@@ -140,10 +136,10 @@ public class FilePath extends CordovaPlugin {
             }
 
             if (success) {
-                File copyFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).getPath() +
+                File cpFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).getPath() +
                     File.separator + getApplicationName(context) + File.separator + fileName);
-                copy(context, contentUri, copyFile);
-                return copyFile.getAbsolutePath();
+                copyFile(context, contentUri, cpFile);
+                return cpFile.getAbsolutePath();
             }
 
         }
@@ -161,16 +157,24 @@ public class FilePath extends CordovaPlugin {
         return fileName;
     }
 
-    public static void copy(Context context, Uri srcUri, File dstFile) {
+    public static void copyFile(Context context, Uri srcUri, File dstFile) {
         try {
             InputStream inputStream = context.getContentResolver().openInputStream(srcUri);
             if (inputStream == null) return;
             OutputStream outputStream = new FileOutputStream(dstFile);
-            IOUtils.copy(inputStream, outputStream);
+            copy(inputStream, outputStream);
             inputStream.close();
             outputStream.close();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+    
+    public static void copy(InputStream in, OutputStream out) throws IOException {
+        byte[] buffer = new byte[8192];
+        int read;
+        while ((read = in.read(buffer, 0, buffer.length)) != -1) {
+            out.write(buffer, 0, read);
         }
     }
 
