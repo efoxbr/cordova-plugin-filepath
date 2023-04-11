@@ -492,7 +492,7 @@ public class FilePath extends CordovaPlugin {
                     return getDriveFilePath(uri, context);
                 } catch (Exception e) {
                     //In Android 8 and Android P the id is not a number
-                    return uri.getPath() return uri.getPath().replaceFirst("^/document/raw:", "").replaceFirst("^raw:", "");
+                    return uri.getPath();
                 }
 
             }
